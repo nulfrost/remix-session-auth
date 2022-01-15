@@ -37,15 +37,6 @@ export let action: ActionFunction = async ({ request }) => {
   });
 };
 
-export let loader: LoaderFunction = async ({ request }) => {
-  let session = await getSession(request.headers.get("Cookie"));
-
-  if (session) {
-    return redirect("/users");
-  }
-  return redirect("/login");
-};
-
 export default function Login() {
   let errors = useActionData<LoginErrors>();
   return (
@@ -63,6 +54,7 @@ export default function Login() {
             name="username"
             aria-required="true"
             sx={{ marginBottom: 10 }}
+            description="Use any username and password"
           />
           {errors?.password && (
             <Text color="red" aria-live="assertive" size="sm">
