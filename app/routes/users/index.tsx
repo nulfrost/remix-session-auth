@@ -24,35 +24,23 @@ type LoaderData = {
 export let action: ActionFunction = async ({ request }) => {
   const formData = await request.formData();
   let username = formData.get("name") as string;
-  let action = formData.get("_action");
 
   // fake delay
   await new Promise((res) => setTimeout(res, 1000));
 
-  let session = await getSession(request.headers.get("Cookie"));
-
-  switch (action) {
-    case "add":
-      try {
-        await prisma.user.create({
-          data: {
-            name: username,
-          },
-        });
-      } catch (e) {
-        return json("User already exists in the database", {
-          status: 400,
-        });
-      }
-
-      return redirect("/users");
-    case "logout":
-      return redirect("/login", {
-        headers: {
-          "Set-Cookie": await destroySession(session),
-        },
-      });
+  try {
+    await prisma.user.create({
+      data: {
+        name: username,
+      },
+    });
+  } catch (e) {
+    return json("User already exists in the database", {
+      status: 400,
+    });
   }
+
+  return redirect("/users");
 };
 
 export let loader: LoaderFunction = async ({ request }) => {
@@ -77,7 +65,6 @@ export default function Index() {
             </Text>
           )}
           <label htmlFor="name">Name</label>
-          <Input type="hidden" name="_action" value="add" />
           <Input type="text" id="name" name="name" sx={{ marginBottom: 20 }} />
           <Button
             variant="gradient"
@@ -89,8 +76,7 @@ export default function Index() {
           </Button>
         </Form>
       </Paper>
-      <Form method="post">
-        <Input type="hidden" name="_action" value="logout" />
+      <Form method="post" action="/logout">
         <Button type="submit">Log out</Button>
       </Form>
       <ul>

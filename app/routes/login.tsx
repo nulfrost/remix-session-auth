@@ -37,6 +37,17 @@ export let action: ActionFunction = async ({ request }) => {
   });
 };
 
+export let loader: LoaderFunction = async ({ request }) => {
+  let session = await getSession(request.headers.get("Cookie"));
+
+  let userSession = session.get("user");
+
+  if (userSession) {
+    return redirect("/users");
+  }
+  return {};
+};
+
 export default function Login() {
   let errors = useActionData<LoginErrors>();
   return (
