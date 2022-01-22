@@ -6,7 +6,8 @@ import {
   redirect,
   useActionData,
 } from "remix";
-import { commitSession, getSession } from "~/session.server";
+import { authenticator } from "~/services/auth.server";
+import { commitSession, getSession } from "~/services/session.server";
 
 interface LoginErrors {
   username?: boolean;
@@ -14,38 +15,15 @@ interface LoginErrors {
 }
 
 export let action: ActionFunction = async ({ request }) => {
-  let body = await request.formData();
-  let username = body.get("username") as string;
-  let password = body.get("password") as string;
-
-  let errors: LoginErrors = {};
-  if (!username) errors.username = true;
-  if (!password) errors.password = true;
-
-  if (Object.keys(errors).length) {
-    return errors;
-  }
-
-  let session = await getSession(request.headers.get("Cookie"));
-
-  session.set("user", username);
-
-  return redirect("/users", {
-    headers: {
-      "Set-Cookie": await commitSession(session),
-    },
+  return await authenticator.authenticate("form", request, {
+    successRedirect: "/users",
   });
 };
 
 export let loader: LoaderFunction = async ({ request }) => {
-  let session = await getSession(request.headers.get("Cookie"));
-
-  let userSession = session.get("user");
-
-  if (userSession) {
-    return redirect("/users");
-  }
-  return {};
+  await authenticator.isAuthenticated(request, {
+    successRedirect: "/users",
+  });
 };
 
 export default function Login() {
@@ -60,9 +38,10 @@ export default function Login() {
             </Text>
           )}
           <TextInput
-            label="Username"
+            label="E-mail"
             required
-            name="username"
+            name="email"
+            type="email"
             aria-required="true"
             sx={{ marginBottom: 10 }}
             description="Use any username and password"

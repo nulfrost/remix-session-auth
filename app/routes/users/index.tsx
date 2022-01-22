@@ -10,11 +10,6 @@ import {
 } from "remix";
 import { prisma } from "~/db.server";
 import { Input, Paper, Button, Text } from "@mantine/core";
-import {
-  destroySession,
-  getSession,
-  requireUserSession,
-} from "~/session.server";
 
 type LoaderData = {
   id: number;
@@ -43,12 +38,7 @@ export let action: ActionFunction = async ({ request }) => {
   return redirect("/users");
 };
 
-export let loader: LoaderFunction = async ({ request }) => {
-  return requireUserSession(request, async (session) => {
-    const users = await prisma.user.findMany();
-    return json(users);
-  });
-};
+export let loader: LoaderFunction = async ({ request }) => {};
 
 export default function Index() {
   let data = useLoaderData<LoaderData[]>();
